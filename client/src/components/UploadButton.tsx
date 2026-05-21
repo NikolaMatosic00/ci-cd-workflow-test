@@ -102,7 +102,7 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <span style={{ color: "#fff", fontWeight: 600, fontSize: 16 }}>
-              {step === "pick-location" ? "Tap the map to pin location" : "Share a moment"}
+              {step === "pick-location" ? "Tap map to pin location" : "Share a moment"}
             </span>
             <button onClick={handleClose} style={iconBtnStyle}>✕</button>
           </div>

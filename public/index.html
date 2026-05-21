@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="sr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S3 Upload</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f0f0f;
+        color: #e0e0e0;
+        min-height: 100vh;
+        padding: 40px 20px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 40px;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+
+      .upload-area {
+        border: 2px dashed #333;
+        border-radius: 16px;
+        padding: 60px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        max-width: 600px;
+        margin: 0 auto 40px;
+        background: #161616;
+      }
+
+      .upload-area:hover,
+      .upload-area.drag-over {
+        border-color: #4f8ef7;
+        background: #1a1f2e;
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        display: block;
+      }
+
+      .upload-area p {
+        color: #888;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+      }
+
+      .upload-area p span {
+        color: #4f8ef7;
+        font-weight: 500;
+      }
+
+      #fileInput {
+        display: none;
+      }
+
+      .btn {
+        background: #4f8ef7;
+        color: #fff;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      .btn:hover {
+        background: #3a7ae8;
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn:disabled {
+        background: #2a2a2a;
+        color: #555;
+        cursor: not-allowed;
+      }
+
+      .status {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto 16px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .status.success {
+        background: #1a2e1a;
+        color: #4caf50;
+        border: 1px solid #2a4a2a;
+        display: block;
+      }
+
+      .status.error {
+        background: #2e1a1a;
+        color: #f44336;
+        border: 1px solid #4a2a2a;
+        display: block;
+      }
+
+      .status.loading {
+        background: #1a1f2e;
+        color: #4f8ef7;
+        border: 1px solid #2a3050;
+        display: block;
+      }
+
+      .progress-bar-wrap {
+        max-width: 600px;
+        margin: 0 auto 30px;
+        background: #1e1e1e;
+        border-radius: 8px;
+        height: 6px;
+        overflow: hidden;
+        display: none;
+      }
+
+      .progress-bar-wrap.visible {
+        display: block;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: #4f8ef7;
+        width: 0%;
+        transition: width 0.3s;
+        border-radius: 8px;
+      }
+
+      .gallery-header {
+        max-width: 1200px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .gallery-header h2 {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #ccc;
+      }
+
+      .gallery-count {
+        font-size: 0.85rem;
+        color: #555;
+      }
+
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .gallery-item {
+        background: #161616;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #222;
+        transition: transform 0.2s, border-color 0.2s;
+      }
+
+      .gallery-item:hover {
+        transform: translateY(-3px);
+        border-color: #333;
+      }
+
+      .gallery-item img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        display: block;
+        background: #111;
+      }
+
+      .gallery-item-info {
+        padding: 10px 14px;
+      }
+
+      .gallery-item-name {
+        font-size: 0.8rem;
+        color: #888;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .gallery-item-date {
+        font-size: 0.75rem;
+        color: #444;
+        margin-top: 4px;
+      }
+
+      .gallery-empty {
+        text-align: center;
+        color: #444;
+        font-size: 0.95rem;
+        grid-column: 1 / -1;
+        padding: 60px 0;
+      }
+
+      .selected-preview {
+        max-width: 600px;
+        margin: 0 auto 20px;
+        text-align: center;
+        display: none;
+      }
+
+      .selected-preview img {
+        max-height: 180px;
+        border-radius: 10px;
+        border: 1px solid #333;
+      }
+
+      .selected-preview p {
+        color: #666;
+        font-size: 0.85rem;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>S3 Image Upload</h1>
+
+    <div class="upload-area" id="uploadArea">
+      <span class="upload-icon">🖼️</span>
+      <p>Prevuci sliku ovde ili <span>klikni da odabereš</span></p>
+      <input type="file" id="fileInput" accept="image/*" />
+      <button class="btn" id="chooseBtn" type="button">Odaberi sliku</button>
+    </div>
+
+    <div class="selected-preview" id="selectedPreview">
+      <img id="previewImg" src="" alt="preview" />
+      <p id="previewName"></p>
+      <button class="btn" id="uploadBtn" type="button" style="margin-top: 14px">
+        Okači na S3
+      </button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="progress-bar-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="gallery-header">
+      <h2>Okačene slike</h2>
+      <span class="gallery-count" id="galleryCount"></span>
+    </div>
+    <div class="gallery" id="gallery">
+      <div class="gallery-empty">Učitavam slike...</div>
+    </div>
+
+    <script>
+      const uploadArea = document.getElementById("uploadArea");
+      const fileInput = document.getElementById("fileInput");
+      const chooseBtn = document.getElementById("chooseBtn");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const selectedPreview = document.getElementById("selectedPreview");
+      const previewImg = document.getElementById("previewImg");
+      const previewName = document.getElementById("previewName");
+      const status = document.getElementById("status");
+      const progressWrap = document.getElementById("progressWrap");
+      const progressBar = document.getElementById("progressBar");
+      const gallery = document.getElementById("gallery");
+      const galleryCount = document.getElementById("galleryCount");
+
+      let selectedFile = null;
+
+      chooseBtn.addEventListener("click", () => fileInput.click());
+      uploadArea.addEventListener("click", (e) => {
+        if (e.target !== chooseBtn) fileInput.click();
+      });
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) handleFileSelect(fileInput.files[0]);
+      });
+
+      uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("drag-over");
+      });
+
+      uploadArea.addEventListener("dragleave", () => {
+        uploadArea.classList.remove("drag-over");
+      });
+
+      uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("drag-over");
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) handleFileSelect(file);
+      });
+
+      function handleFileSelect(file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewName.textContent = file.name + " (" + formatSize(file.size) + ")";
+          selectedPreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+        setStatus("", "");
+      }
+
+      uploadBtn.addEventListener("click", async () => {
+        if (!selectedFile) return;
+
+        uploadBtn.disabled = true;
+        chooseBtn.disabled = true;
+        setStatus("Uploadujem...", "loading");
+        progressWrap.classList.add("visible");
+        progressBar.style.width = "30%";
+
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+
+        try {
+          progressBar.style.width = "60%";
+          const res = await fetch("/upload", { method: "POST", body: formData });
+          const data = await res.json();
+          progressBar.style.width = "100%";
+
+          if (data.success) {
+            setStatus("Slika uspješno okačena!", "success");
+            selectedPreview.style.display = "none";
+            selectedFile = null;
+            fileInput.value = "";
+            setTimeout(() => progressWrap.classList.remove("visible"), 800);
+            loadGallery();
+          } else {
+            setStatus("Greška: " + data.error, "error");
+          }
+        } catch (err) {
+          setStatus("Greška pri uploadu: " + err.message, "error");
+        } finally {
+          uploadBtn.disabled = false;
+          chooseBtn.disabled = false;
+        }
+      });
+
+      function setStatus(msg, type) {
+        status.className = "status " + type;
+        status.textContent = msg;
+        if (!type) status.style.display = "none";
+      }
+
+      async function loadGallery() {
+        try {
+          const res = await fetch("/images");
+          const images = await res.json();
+
+          if (!images.length) {
+            gallery.innerHTML = '<div class="gallery-empty">Još nema okačenih slika.</div>';
+            galleryCount.textContent = "";
+            return;
+          }
+
+          galleryCount.textContent = images.length + " slika";
+          gallery.innerHTML = images
+            .map(
+              (img) => `
+              <div class="gallery-item">
+                <img src="${img.url}" alt="${fileName(img.key)}" loading="lazy" />
+                <div class="gallery-item-info">
+                  <div class="gallery-item-name">${fileName(img.key)}</div>
+                  <div class="gallery-item-date">${formatDate(img.lastModified)}</div>
+                </div>
+              </div>`
+            )
+            .join("");
+        } catch (err) {
+          gallery.innerHTML = '<div class="gallery-empty">Greška pri učitavanju slika.</div>';
+        }
+      }
+
+      function fileName(key) {
+        return key.split("/").pop().replace(/^\d+-/, "");
+      }
+
+      function formatDate(d) {
+        return new Date(d).toLocaleString("sr-RS");
+      }
+
+      function formatSize(bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      loadGallery();
+    </script>
+  </body>
+</html>

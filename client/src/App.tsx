@@ -61,6 +61,7 @@ export default function App() {
         pickedLocation={pickedLocation}
         mapCenter={mapCenter}
         onRequestInitialPin={() => setPickedLocation(mapCenter)}
+        onLocationPick={setPickedLocation}
       />
 
       {selected && (

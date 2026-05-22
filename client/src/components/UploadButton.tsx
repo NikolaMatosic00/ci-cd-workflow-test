@@ -33,11 +33,12 @@ interface Props {
   pickedLocation: { lat: number; lng: number } | null;
   mapCenter: { lat: number; lng: number };
   onRequestInitialPin: () => void;
+  onLocationPick: (coords: { lat: number; lng: number }) => void;
 }
 
 type Step = "locating" | "pick-location" | "photo" | "uploading" | "error";
 
-export default function UploadButton({ onUpload, onPickingChange, pickedLocation, onRequestInitialPin }: Props) {
+export default function UploadButton({ onUpload, onPickingChange, pickedLocation, onRequestInitialPin, onLocationPick }: Props) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("locating");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -47,7 +48,7 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    onPickingChange(open && step === "pick-location");
+    onPickingChange(open && step !== "locating");
   }, [open, step, onPickingChange]);
 
   const handleOpen = () => {
@@ -57,7 +58,9 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(c);
+        onLocationPick(c);
         setStep("photo");
       },
       () => {

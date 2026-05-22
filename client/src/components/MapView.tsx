@@ -164,6 +164,7 @@ export default function MapView({
           position={[pickedLocation.lat, pickedLocation.lng]}
           icon={dragPinIcon}
           draggable
+          zIndexOffset={1000}
           eventHandlers={{
             dragend: (e) => {
               const { lat, lng } = e.target.getLatLng();

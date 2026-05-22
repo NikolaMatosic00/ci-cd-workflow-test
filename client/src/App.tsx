@@ -11,6 +11,7 @@ export default function App() {
   const [selected, setSelected] = useState<Photo | null>(null);
   const [picking, setPicking] = useState(false);
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState(NOVI_SAD);
 
   const fetchPhotos = useCallback(async () => {
@@ -41,7 +42,15 @@ export default function App() {
 
   const handlePickingChange = (active: boolean) => {
     setPicking(active);
-    if (!active) setPickedLocation(null);
+    if (!active) {
+      setPickedLocation(null);
+      setFlyTarget(null);
+    }
+  };
+
+  const handleInitialPin = (coords: { lat: number; lng: number }) => {
+    setPickedLocation(coords);
+    setFlyTarget(coords);
   };
 
   return (
@@ -53,6 +62,7 @@ export default function App() {
         pickedLocation={pickedLocation}
         onLocationPick={setPickedLocation}
         onCenterChange={setMapCenter}
+        flyTarget={flyTarget}
       />
 
       <UploadButton
@@ -60,8 +70,8 @@ export default function App() {
         onPickingChange={handlePickingChange}
         pickedLocation={pickedLocation}
         mapCenter={mapCenter}
-        onRequestInitialPin={() => setPickedLocation(mapCenter)}
-        onLocationPick={setPickedLocation}
+        onRequestInitialPin={() => handleInitialPin(mapCenter)}
+        onLocationPick={handleInitialPin}
       />
 
       {selected && (

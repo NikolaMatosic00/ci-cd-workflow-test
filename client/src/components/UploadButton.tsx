@@ -86,13 +86,14 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
   };
 
   const handleUpload = async () => {
-    if (!file || !coords) return;
+    const location = pickedLocation ?? coords;
+    if (!file || !location) return;
     setStep("uploading");
 
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("lat", String(coords.lat));
-    formData.append("lng", String(coords.lng));
+    formData.append("lat", String(location.lat));
+    formData.append("lng", String(location.lng));
 
     try {
       const res = await fetch("/api/photos", { method: "POST", body: formData });
@@ -161,9 +162,9 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
 
           {(step === "photo" || step === "uploading" || step === "error") && (
             <>
-              {coords && (
+              {(pickedLocation ?? coords) && (
                 <p style={mutedStyle}>
-                  📍 {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+                  📍 {(pickedLocation ?? coords)!.lat.toFixed(5)}, {(pickedLocation ?? coords)!.lng.toFixed(5)} — drag pin to adjust
                 </p>
               )}
 

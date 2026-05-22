@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -12,6 +12,7 @@ interface Props {
   pickedLocation: { lat: number; lng: number } | null;
   onLocationPick: (coords: { lat: number; lng: number }) => void;
   onCenterChange: (coords: { lat: number; lng: number }) => void;
+  flyTarget: { lat: number; lng: number } | null;
 }
 
 function timeLeft(expiresAt: string): string {
@@ -60,78 +61,12 @@ function CenterTracker({ onChange }: { onChange: (c: { lat: number; lng: number 
   return null;
 }
 
-function LocateMeButton() {
+function FlyTo({ target }: { target: { lat: number; lng: number } | null }) {
   const map = useMap();
-  const [locating, setLocating] = useState(false);
-  const [errMsg, setErrMsg] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    if (containerRef.current) {
-      L.DomEvent.disableClickPropagation(containerRef.current);
-      L.DomEvent.disableScrollPropagation(containerRef.current);
-    }
-  }, []);
-
-  const locate = () => {
-    if (!navigator.geolocation) {
-      setErrMsg("Not supported");
-      return;
-    }
-    setLocating(true);
-    setErrMsg("");
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        map.flyTo([coords.latitude, coords.longitude], 16, { animate: true });
-        setLocating(false);
-      },
-      () => {
-        setLocating(false);
-        setErrMsg("Location denied");
-        setTimeout(() => setErrMsg(""), 3000);
-      },
-      { timeout: 8_000, enableHighAccuracy: true }
-    );
-  };
-
-  return (
-    <div ref={containerRef} style={{ position: "absolute", top: 16, right: 16, zIndex: 1000 }}>
-      <button
-        onClick={locate}
-        title="Locate me"
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: "50%",
-          background: "#1c1c2e",
-          border: "1px solid #444466",
-          color: locating ? "#7090f7" : "#c0c0d8",
-          fontSize: 20,
-          cursor: "pointer",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {locating ? "…" : "◎"}
-      </button>
-      {errMsg && (
-        <div style={{
-          marginTop: 6,
-          background: "rgba(0,0,0,0.8)",
-          color: "#f77",
-          fontSize: 11,
-          padding: "3px 7px",
-          borderRadius: 6,
-          whiteSpace: "nowrap",
-          textAlign: "center",
-        }}>
-          {errMsg}
-        </div>
-      )}
-    </div>
-  );
+    if (target) map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 15), { animate: true });
+  }, [target, map]);
+  return null;
 }
 
 export default function MapView({
@@ -141,6 +76,7 @@ export default function MapView({
   pickedLocation,
   onLocationPick,
   onCenterChange,
+  flyTarget,
 }: Props) {
   return (
     <MapContainer
@@ -157,7 +93,7 @@ export default function MapView({
       />
 
       <CenterTracker onChange={onCenterChange} />
-      <LocateMeButton />
+      <FlyTo target={flyTarget} />
 
       {picking && pickedLocation && (
         <Marker

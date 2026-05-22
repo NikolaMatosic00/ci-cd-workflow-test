@@ -25,8 +25,18 @@ export default function App() {
 
   useEffect(() => {
     fetchPhotos();
-    const id = setInterval(fetchPhotos, 60_000);
-    return () => clearInterval(id);
+
+    // Real-time updates via Server-Sent Events
+    const es = new EventSource("/api/events");
+    es.addEventListener("new-photo", fetchPhotos);
+
+    // Fallback polling every 60s in case SSE drops
+    const poll = setInterval(fetchPhotos, 60_000);
+
+    return () => {
+      es.close();
+      clearInterval(poll);
+    };
   }, [fetchPhotos]);
 
   const handlePickingChange = (active: boolean) => {

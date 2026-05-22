@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useState } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -13,10 +14,23 @@ interface Props {
   onCenterChange: (coords: { lat: number; lng: number }) => void;
 }
 
-const createThumbnailIcon = (url: string) =>
+function timeLeft(expiresAt: string): string {
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) return "exp";
+  const h = Math.floor(diff / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  if (h > 0) return `${h}h`;
+  if (m > 0) return `${m}m`;
+  return "<1m";
+}
+
+const createThumbnailIcon = (photo: Photo) =>
   L.divIcon({
     className: "",
-    html: `<div class="thumb-marker-wrap"><img src="${url}" alt="" /></div>`,
+    html: `<div class="thumb-marker-wrap">
+      <img src="${photo.url}" alt="" />
+      <span class="timer-badge">${timeLeft(photo.expiresAt)}</span>
+    </div>`,
     iconSize: [56, 56],
     iconAnchor: [28, 28],
   });
@@ -29,7 +43,6 @@ const createClusterIcon = (cluster: { getChildCount: () => number }) =>
     iconAnchor: [22, 22],
   });
 
-// Large draggable pin — anchor at bottom tip so the point sits on the coordinate
 const dragPinIcon = L.divIcon({
   className: "",
   html: `<div style="font-size:44px;line-height:1;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.8));cursor:grab;user-select:none;">📍</div>`,
@@ -45,6 +58,49 @@ function CenterTracker({ onChange }: { onChange: (c: { lat: number; lng: number 
     },
   });
   return null;
+}
+
+function LocateMeButton() {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+
+  const locate = () => {
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        map.flyTo([coords.latitude, coords.longitude], 16, { animate: true });
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8_000, enableHighAccuracy: true }
+    );
+  };
+
+  return (
+    <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1000, pointerEvents: "none" }}>
+      <button
+        onClick={locate}
+        title="Locate me"
+        style={{
+          pointerEvents: "auto",
+          width: 42,
+          height: 42,
+          borderRadius: "50%",
+          background: "#1a1a1a",
+          border: "1px solid #444",
+          color: locating ? "#4f8ef7" : "#ccc",
+          fontSize: 20,
+          cursor: "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {locating ? "…" : "◎"}
+      </button>
+    </div>
+  );
 }
 
 export default function MapView({
@@ -70,6 +126,7 @@ export default function MapView({
       />
 
       <CenterTracker onChange={onCenterChange} />
+      <LocateMeButton />
 
       {picking && pickedLocation && (
         <Marker
@@ -95,7 +152,7 @@ export default function MapView({
           <Marker
             key={photo.id}
             position={[photo.lat, photo.lng]}
-            icon={createThumbnailIcon(photo.url)}
+            icon={createThumbnailIcon(photo)}
             eventHandlers={{ click: () => onMarkerClick(photo) }}
           />
         ))}

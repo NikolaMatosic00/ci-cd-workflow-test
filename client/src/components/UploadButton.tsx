@@ -269,7 +269,7 @@ const errorStyle: React.CSSProperties = {
 
 const previewStyle: React.CSSProperties = {
   width: "100%",
-  maxHeight: 160,
+  height: 200,
   objectFit: "cover",
   borderRadius: 10,
   marginBottom: 12,

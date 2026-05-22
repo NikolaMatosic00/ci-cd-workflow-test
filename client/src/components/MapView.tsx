@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -63,26 +63,43 @@ function CenterTracker({ onChange }: { onChange: (c: { lat: number; lng: number 
 function LocateMeButton() {
   const map = useMap();
   const [locating, setLocating] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      L.DomEvent.disableClickPropagation(containerRef.current);
+      L.DomEvent.disableScrollPropagation(containerRef.current);
+    }
+  }, []);
 
   const locate = () => {
+    if (!navigator.geolocation) {
+      setErrMsg("Not supported");
+      return;
+    }
     setLocating(true);
+    setErrMsg("");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         map.flyTo([coords.latitude, coords.longitude], 16, { animate: true });
         setLocating(false);
       },
-      () => setLocating(false),
+      () => {
+        setLocating(false);
+        setErrMsg("Location denied");
+        setTimeout(() => setErrMsg(""), 3000);
+      },
       { timeout: 8_000, enableHighAccuracy: true }
     );
   };
 
   return (
-    <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1000, pointerEvents: "none" }}>
+    <div ref={containerRef} style={{ position: "absolute", top: 16, right: 16, zIndex: 1000 }}>
       <button
         onClick={locate}
         title="Locate me"
         style={{
-          pointerEvents: "auto",
           width: 42,
           height: 42,
           borderRadius: "50%",
@@ -99,6 +116,20 @@ function LocateMeButton() {
       >
         {locating ? "…" : "◎"}
       </button>
+      {errMsg && (
+        <div style={{
+          marginTop: 6,
+          background: "rgba(0,0,0,0.8)",
+          color: "#f77",
+          fontSize: 11,
+          padding: "3px 7px",
+          borderRadius: 6,
+          whiteSpace: "nowrap",
+          textAlign: "center",
+        }}>
+          {errMsg}
+        </div>
+      )}
     </div>
   );
 }

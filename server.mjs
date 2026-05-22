@@ -96,6 +96,16 @@ const upload = multer({
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || "eu-central-1" });
 
+// ── SSE (real-time push to clients) ───────────────────────────────────────────
+
+const sseClients = new Set();
+
+function broadcastNewPhoto() {
+  for (const client of sseClients) {
+    client.write("event: new-photo\ndata: {}\n\n");
+  }
+}
+
 // ── Static files ──────────────────────────────────────────────────────────────
 
 app.use(express.static(path.join(__dirname, "client/dist")));
@@ -147,6 +157,7 @@ app.post(
         location: { type: "Point", coordinates: [lng, lat] },
       });
 
+      broadcastNewPhoto();
       res.json({ success: true, id: photo._id });
     } catch (err) {
       console.error(err);
@@ -157,6 +168,20 @@ app.post(
     }
   }
 );
+
+app.get("/api/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const heartbeat = setInterval(() => res.write(":heartbeat\n\n"), 25_000);
+  sseClients.add(res);
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
 
 app.get("/api/photos", readLimiter, async (_req, res) => {
   try {

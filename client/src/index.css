@@ -36,21 +36,26 @@ body,
 }
 
 /* Thumbnail marker */
-.thumb-marker-wrap {
+.thumb-marker-outer {
   position: relative;
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  overflow: visible;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  background: #111;
   cursor: pointer;
   transition: transform 0.15s;
 }
 
-.thumb-marker-wrap:hover {
+.thumb-marker-outer:hover {
   transform: scale(1.1);
+}
+
+.thumb-marker-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  background: #111;
 }
 
 .thumb-marker-wrap img {
@@ -58,8 +63,6 @@ body,
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 50%;
-  overflow: hidden;
 }
 
 .timer-badge {

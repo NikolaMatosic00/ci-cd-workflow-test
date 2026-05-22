@@ -28,9 +28,7 @@ const createThumbnailIcon = (photo: Photo) =>
   L.divIcon({
     className: "",
     html: `<div class="thumb-marker-outer">
-      <div class="thumb-marker-wrap">
-        <img src="${photo.url}" alt="" />
-      </div>
+      <div class="thumb-marker-wrap" style="background-image:url('${photo.url}')"></div>
       <span class="timer-badge">${timeLeft(photo.expiresAt)}</span>
     </div>`,
     iconSize: [56, 56],

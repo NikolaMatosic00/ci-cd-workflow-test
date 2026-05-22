@@ -19,7 +19,7 @@ export default function PhotoModal({ photo, onClose }: Props) {
       <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
         <img src={photo.url} alt="photo" style={imgStyle} />
         <div style={footerStyle}>
-          <span style={{ color: "#888", fontSize: 13 }}>
+          <span style={{ color: "#8888aa", fontSize: 13 }}>
             ⏱ {timeLeft(photo.expiresAt)}
           </span>
           <button onClick={onClose} style={closeBtnStyle}>
@@ -42,12 +42,12 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const modalStyle: React.CSSProperties = {
-  background: "#1a1a1a",
+  background: "#1c1c2e",
   borderRadius: 16,
   overflow: "hidden",
   maxWidth: "92vw",
   maxHeight: "90vh",
-  border: "1px solid #333",
+  border: "1px solid #2e2e4a",
   display: "flex",
   flexDirection: "column",
 };
@@ -61,6 +61,7 @@ const imgStyle: React.CSSProperties = {
 
 const footerStyle: React.CSSProperties = {
   padding: "12px 16px",
+  background: "#16162a",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
@@ -69,7 +70,7 @@ const footerStyle: React.CSSProperties = {
 const closeBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#888",
+  color: "#7070a0",
   cursor: "pointer",
   fontSize: 18,
   padding: 4,

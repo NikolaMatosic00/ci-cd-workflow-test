@@ -129,7 +129,7 @@ export default function UploadButton({ onUpload, onPickingChange, pickedLocation
       {open && (
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 16 }}>
+            <span style={{ color: "#e0e0f4", fontWeight: 600, fontSize: 16 }}>
               {step === "pick-location" ? "Tap map to pin location" : "Share a moment"}
             </span>
             <button onClick={handleClose} style={iconBtnStyle}>✕</button>
@@ -228,12 +228,12 @@ const panelStyle: React.CSSProperties = {
   bottom: 0,
   left: 0,
   right: 0,
-  background: "#1a1a1a",
+  background: "#1c1c2e",
   borderRadius: "20px 20px 0 0",
   padding: "20px 20px 36px",
-  boxShadow: "0 -4px 32px rgba(0,0,0,0.7)",
+  boxShadow: "0 -4px 32px rgba(0,0,0,0.6)",
   zIndex: 1000,
-  border: "1px solid #2e2e2e",
+  border: "1px solid #2e2e4a",
   borderBottom: "none",
 };
 
@@ -247,14 +247,14 @@ const panelHeaderStyle: React.CSSProperties = {
 const iconBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#666",
+  color: "#7070a0",
   cursor: "pointer",
   fontSize: 17,
   padding: 4,
 };
 
 const mutedStyle: React.CSSProperties = {
-  color: "#777",
+  color: "#8888aa",
   fontSize: 13,
   marginBottom: 14,
   lineHeight: 1.5,
@@ -279,9 +279,9 @@ const previewStyle: React.CSSProperties = {
 const secondaryBtnStyle: React.CSSProperties = {
   width: "100%",
   padding: "11px",
-  background: "#262626",
-  color: "#ccc",
-  border: "1px solid #3a3a3a",
+  background: "#252540",
+  color: "#c0c0d8",
+  border: "1px solid #3e3e60",
   borderRadius: 10,
   cursor: "pointer",
   fontSize: 14,
